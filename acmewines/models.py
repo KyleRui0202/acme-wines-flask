@@ -2,10 +2,17 @@ from datetime import datetime, date
 
 from sqlalchemy.dialects.postgresql import JSON as PSQLJSON
 
+from flask import json
+
 from acmewines import db
 
 class Order(db.Model):
-    id_column = db.Column('id', db.Integer, primary_key=True, autoincrement=False)
+    __tablename__ = 'order'
+    __mapper_args__ = {
+        'exclude_properties': ['created_at', 'updated_at']
+    }
+
+    id = db.Column('id', db.Integer, primary_key=True, autoincrement=False)
     name_column = db.Column('name', db.String(128), nullable=True, index=True)
     email_column = db.Column('email', db.String(254), nullable=True, index=True)
     state_column = db.Column('state', db.String(2), nullable=True)
@@ -18,59 +25,62 @@ class Order(db.Model):
         onupdate=datetime.now)
     ix_state_zipcode = db.Index('ix_state_zipcode', state_column, zipcode_column)
 
+    _visible = ('id', 'name', 'email', 'state', 'zipcode', 'birthday',
+        'valid', 'validation_failure')
+
     # Properties
     @property
     def name(self):
         """Get the name of the orderer"""
-        return self._name
+        return self.name_column
 
     @name.setter
     def name(self, value):
-        self._name = value.strip()
-        validation_errors = self._validate_name(self._name)
+        self.name_column = value.strip()
+        validation_errors = self._validate_name(self.name_column)
         self._update_validation_failure(validation_errors)
 
     @property
     def email(self):
         """Get the email of the orderer"""
-        return self._email
+        return self.email_column
 
     @email.setter
     def email(self, value):
-        self._email = value.strip().lower()
-        validation_errors = self._validate_email(self._email)
+        self.email_column = value.strip().lower()
+        validation_errors = self._validate_email(self.email_column)
         self._update_validation_failure(validation_errors)
 
     @property
     def state(self):
         """Get the state of the order"""
-        return self._state
+        return self.state_column
 
     @state.setter
     def state(self, value):
-        self._state = value.strip().upper()
-        validation_errors = self._validate_state(self._state)
+        self.state_column = value.strip().upper()
+        validation_errors = self._validate_state(self.state_column)
         self._update_validation_failure(validation_errors)
 
     @property
     def zipcode(self):
         """Get the zipcode of the order"""
-        return self._zipcode
+        return self.zipcode_column
 
     @zipcode.setter
     def zipcode(self, value):
-        self._zipcode = value.strip()
-        validation_errors = self._validate_zipcode(self._zipcode)
+        self.zipcode_column = value.strip()
+        validation_errors = self._validate_zipcode(self.zipcode_column)
         self._update_validation_failure(validation_errors)
 
     @property
     def birthday(self):
         """Get the birthday of the orderer"""
-        return self._birthday
+        return self.birthday_column.isoformat()
 
     @birthday.setter
     def birthday(self, value):
-        self._birthday, validation_errors =\
+        self.birthday_column, validation_errors =\
             self._parse_and_validate_birthday(value.strip())
         self._update_validation_failure(validation_errors)
 
@@ -91,7 +101,17 @@ class Order(db.Model):
         if birthday:
             self.birthday = birthday
 
-    def _update_validation_failure(validation_errors):
+    def __repr__(self):
+        return '<Order: id=%d>' % self.id
+
+    def toDict(self):
+        fieldDict = {}
+        for field_name in Order._visible:
+            if hasattr(self, field_name):
+                fieldDict[field_name] = getattr(self, field_name)
+        return fieldDict
+
+    def _update_validation_failure(self, validation_errors):
         if validation_errors:
             if self.validation_failure is None:
                 self.validation_failure = {}
@@ -99,7 +119,7 @@ class Order(db.Model):
             if self.valid or self.valid is None:
                 self.valid = False
 
-    def _parse_required_field(field, value):
+    def _parse_required_field(self, field, value):
         is_valid = True
 
         if value:
@@ -117,10 +137,10 @@ class Order(db.Model):
         if self.valid and not is_valid:
             self.valid = False
         
-    def _validate_name(value):
+    def _validate_name(self, value):
         return None 
 
-    def _validate_email(value):
+    def _validate_email(self, value):
         from validate_email import validate_email
         is_valid = validate_email(value)
         if is_valid:
@@ -128,7 +148,7 @@ class Order(db.Model):
         else:
             return {'email_validation': 'The email address is not valid'}
 
-    def _validate_state(value):
+    def _validate_state(self, value):
         from acmewines.configs.validation import states, states_not_allowed
         if value in states:
             if value in states_not_allowed:
@@ -139,7 +159,7 @@ class Order(db.Model):
             return {'state_validation': value + ' is not a valid/allowed' +\
                 ' U.S. state abbreviation'}
 
-    def _validate_zipcode(value):
+    def _validate_zipcode(self, value):
         from acmewines.configs.validation import zipcode_pattern, zipcode_max_digit_sum
         is_valid = re.match('\d{5}([\-]\d{4})?$', value)
         if is_valid:
@@ -156,7 +176,7 @@ class Order(db.Model):
             return {'zipcode_validation': value + ' is not a valid' +\
                 '5-digit zipcode (e.g., 00000) or 9-digit zipcode (e.g., 00000-0000)'}
 
-    def _parse_and_validate_birthday(value):
+    def _parse_and_validate_birthday(self, value):
         parsed_birthday = None
         validation_errors = None
         from acmewines.configs.validation import birthday_format, min_age
