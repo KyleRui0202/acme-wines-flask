@@ -12,7 +12,7 @@ class Order(db.Model):
         'exclude_properties': ['created_at', 'updated_at']
     }
 
-    id = db.Column('id', db.Integer, primary_key=True, autoincrement=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=False)
     name_column = db.Column('name', db.String(128), nullable=True, index=True)
     email_column = db.Column('email', db.String(254), nullable=True, index=True)
     state_column = db.Column('state', db.String(2), nullable=True)
@@ -104,13 +104,6 @@ class Order(db.Model):
     def __repr__(self):
         return '<Order: id=%d>' % self.id
 
-    def toDict(self):
-        fieldDict = {}
-        for field_name in Order._visible:
-            if hasattr(self, field_name):
-                fieldDict[field_name] = getattr(self, field_name)
-        return fieldDict
-
     def _update_validation_failure(self, validation_errors):
         if validation_errors:
             if self.validation_failure is None:
@@ -194,3 +187,10 @@ class Order(db.Model):
             validation_errors = {'birtday_validation': value +\
                 ' is not a valid birthday format: ' + birthday_format}
         return (parsed_birthday, validation_errors)
+
+    def toDict(self):
+        fieldDict = {}
+        for field_name in Order._visible:
+            if hasattr(self, field_name):
+                fieldDict[field_name] = getattr(self, field_name)
+        return fieldDict

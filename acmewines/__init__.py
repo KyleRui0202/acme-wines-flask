@@ -1,10 +1,21 @@
+"""
+    acmewines
+    ~~~~~~~~~
+
+    Acme Wines is a mock wine ordering application
+    using the micro-framework Flask
+"""
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
+# Initialize the app
 app = Flask(__name__)
 
+# Configure the app
 app.config.from_object('config')
 
+# Initialize a SQLAlchemy object and integrate it to the app
 db = SQLAlchemy(app)
 
 @app.errorhandler(404)
