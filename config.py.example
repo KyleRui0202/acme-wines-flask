@@ -1,0 +1,10 @@
+"""
+    config
+    ~~~~~~
+
+    This is the configuration example for acmewines
+"""
+
+DEBUG = True
+SQLALCHEMY_DATABASE_URI = 'postgresql://user:password@server:port/db'
+SQLALCHEMY_TRACK_MODIFICATIONS = True
