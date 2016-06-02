@@ -5,6 +5,8 @@
     This module contains independent (synchonous/asynchronous) tasks.
 """ 
 
+from sqlalchemy import func
+
 from acmewines.models import Order
 
 class OrderFilterTask(object):
@@ -97,8 +99,8 @@ class OrderFilterTask(object):
                         self._query = self._query.filter_by(
                             valid = filter_value)
                 elif filter_type == 'field_match':
-                    self._query = self._query.filter(getattr(Order,
-                        filter_name + '_column') == filter_value)
+                    self._query = self._query.filter(func.lower(getattr(Order,
+                        filter_name + '_column')) == func.lower(filter_value))
                 elif filter_type =='field_partial_match':
                     self._query = self._query.filter(getattr(Order,
                         filter_name + '_column').ilike('%' + filter_value + '%'))
