@@ -44,9 +44,9 @@ def cleanupdb():
     upgrade()
 
 @manager.command
-def seeddb(initdb=False, cleanupdb=False):
+def seeddb(initdb=False, cleanupdb=False, orders=20):
     """Seed fake data into the database.
-    To create new database use the '-i' or '--initdb' option
+    To create new database use the '-i' or '--initdb' option.
     To clear up the existing database use the '-c' or '--cleanupdb' option.
     """
 
@@ -59,7 +59,7 @@ def seeddb(initdb=False, cleanupdb=False):
         downgrade(revision='base')
         upgrade()
 
-    seeded_data = seed_test_data()
+    seeded_data = seed_test_data(orders=int(orders))
     print("Created and saved test data into database: %r" % seeded_data)
 
 if __name__ == '__main__':
