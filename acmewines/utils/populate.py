@@ -2,7 +2,7 @@
     acmewines.utils.pouplate
     ~~~~~~~~~~~~~~~~~~~~~~~~
 
-    This is a module for creating data for test
+    This is a module that creats data for test
 """
 
 from random import getrandbits

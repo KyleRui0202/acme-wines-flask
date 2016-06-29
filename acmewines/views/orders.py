@@ -3,9 +3,9 @@ from flask import Blueprint, request, jsonify
 from acmewines.models import Order
 from acmewines.tasks import OrderFilterTask
 
-mod = Blueprint('orders', __name__, url_prefix='/orders')
+orders_mod = Blueprint('orders', __name__, url_prefix='/orders')
 
-@mod.route('/')
+@orders_mod.route('/')
 def index():
     url_params = request.args
     order_filter_task = OrderFilterTask(url_params)
@@ -15,11 +15,14 @@ def index():
         num_of_orders = len(filtered_orders),
         results = filtered_orders)
 
-@mod.route('/import')
-def import_orders():
-    pass
+@orders_mod.route('/create', methods=['GET', 'POST'])
+def create_order():
+    if request.method == 'POST':
+        pass
+    return render_template('creat_order.html', error=error)
+        
 
-@mod.route('/<int:id>')
+@orders_mod.route('/<int:id>')
 def show_order(id):
     retrieved_order = Order.query.get(id)
     if retrieved_order:
